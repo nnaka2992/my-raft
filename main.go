@@ -17,7 +17,7 @@ func main() {
 
 	//	e.POST("/raft/heartbeat", PostReceiveHeartbeat)
 	e.GET("/raft/health", GetHealth)
-	e.Logger.Fatal(e.Start(":1323"))
+	e.Logger.Fatal(e.Start(":8080"))
 }
 
 // func PostReceiveHeartbeat(c echo.Context) {
