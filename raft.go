@@ -64,21 +64,31 @@ func (s *StateMachine) ElectionTimer() {
 	// TODO
 }
 
-func NewNode(s state) *StateMachine {
+func NewNode(st state, addr string) *StateMachine {
 	sm := new(StateMachine)
 
-	switch s {
+	switch st {
 	case LEADER:
-		sm.State = s
+		sm.State = st
 		sm.CurrentTerm = 0
-		sm.Log = make([]LogEntry, 10)
+		sm.Log = make([]LogEntry, 0)
 		sm.CommitIndex = 0
 		sm.LastApplied = 0
-		sm.NextIndex = make([]int, 10)
-		sm.MatchIndex = make([]int, 10)
-		sm.LeaderAddr = ""
-		sm.FollowerAddr = make([]string, 10)
+		sm.NextIndex = make([]int, 0)
+		sm.MatchIndex = make([]int, 0)
+		sm.LeaderAddr = addr
+		sm.FollowerAddr = make([]string, 0)
 	case FOLLOWER:
+		sm.State = st
+		sm.CurrentTerm = s.CurrentTerm
+		sm.VotedFor = s.VotedFor
+		sm.Log = s.Log
+		sm.CommitIndex = s.CommitIndex
+		sm.LastApplied = s.LastApplied
+		sm.NextIndex = s.NextIndex
+		sm.MatchIndex = s.MatchIndex
+		sm.LeaderAddr = s.LeaderAddr
+		sm.FollowerAddr = s.FollowerAddr
 	}
 	return sm
 }
@@ -86,6 +96,6 @@ func NewNode(s state) *StateMachine {
 func (s *StateMachine) NewFollower(addr string) *StateMachine {
 	s.FollowerAddr = append(s.FollowerAddr, addr)
 
-	sm := NewNode(FOLLOWER)
+	sm := NewNode(FOLLOWER, addr)
 	return sm
 }

@@ -9,7 +9,7 @@ import (
 
 var s *StateMachine
 func main() {
-	s = NewNode(LEADER)
+	s = NewNode(LEADER, "localhost:8080")
 
 	e := echo.New()
 	e.Use(middleware.Logger())
