@@ -26,5 +26,6 @@ func main() {
 // }
 
 func GetHealth(c echo.Context) error {
-	return c.String(http.StatusOK, "{\"status\": \"ok\"}")
+	s := struct { Status string }{ Status: "OK" }
+	return c.JSON(http.StatusOK, s)
 }
