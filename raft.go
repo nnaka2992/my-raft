@@ -20,6 +20,9 @@ type StateMachine struct {
 	// Volatile state on leaders
 	NextIndex []int
 	MatchIndex []int
+	// Other nodes info
+	LeaderAddr string
+	FollowerAddr []string
 }
 
 type Command interface {
@@ -59,4 +62,30 @@ func (s *StateMachine) HeartbeatTimer() {
 
 func (s *StateMachine) ElectionTimer() {
 	// TODO
+}
+
+func NewNode(s state) *StateMachine {
+	sm := new(StateMachine)
+
+	switch s {
+	case LEADER:
+		sm.State = s
+		sm.CurrentTerm = 0
+		sm.Log = make([]LogEntry, 10)
+		sm.CommitIndex = 0
+		sm.LastApplied = 0
+		sm.NextIndex = make([]int, 10)
+		sm.MatchIndex = make([]int, 10)
+		sm.LeaderAddr = ""
+		sm.FollowerAddr = make([]string, 10)
+	case FOLLOWER:
+	}
+	return sm
+}
+
+func (s *StateMachine) NewFollower(addr string) *StateMachine {
+	s.FollowerAddr = append(s.FollowerAddr, addr)
+
+	sm := NewNode(FOLLOWER)
+	return sm
 }
