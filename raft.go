@@ -1,5 +1,11 @@
 package main
 
+import (
+	"fmt"
+	"net/http"
+	"encoding/json"
+)
+
 // state type is a enum that holds the type of the raft node
 type state int
 const (
@@ -64,9 +70,9 @@ func (s *StateMachine) ElectionTimer() {
 	// TODO
 }
 
-func NewNode(st state, addr string) *StateMachine {
+func NewNode(st state, addr string, leader_addr string) (*StateMachine, error) {
 	sm := new(StateMachine)
-
+	c := http.Client{}
 	switch st {
 	case LEADER:
 		sm.State = st
@@ -79,23 +85,43 @@ func NewNode(st state, addr string) *StateMachine {
 		sm.LeaderAddr = addr
 		sm.FollowerAddr = make([]string, 0)
 	case FOLLOWER:
+		if leader_addr == "" {
+			return nil, fmt.Errorf("leader address is empty")
+		}
+		rp, err := http.Post("http://" + leader_addr + "/raft/follower/new?client_addr=" + addr, "", nil)
+		if err != nil {
+			rd, _ := http.NewRequest("DELETE", "http://" + leader_addr + "/raft/follower?client_addr=" + addr, nil)
+			c.Do(rd)
+			return nil, err
+		}
+		defer rp.Body.Close()
+
+		rg, err := http.Get("http://" + leader_addr + "/raft/statemachine")
+		if err != nil {
+			return nil, err
+		}
+		defer rg.Body.Close()
+
+		if rg.StatusCode != http.StatusOK {
+			return nil, fmt.Errorf("leader is not ready")
+		}
+		if err := json.NewDecoder(rg.Body).Decode(sm); err != nil {
+			return nil, err
+		}
 		sm.State = st
-		sm.CurrentTerm = s.CurrentTerm
-		sm.VotedFor = s.VotedFor
-		sm.Log = s.Log
-		sm.CommitIndex = s.CommitIndex
-		sm.LastApplied = s.LastApplied
-		sm.NextIndex = s.NextIndex
-		sm.MatchIndex = s.MatchIndex
-		sm.LeaderAddr = s.LeaderAddr
-		sm.FollowerAddr = s.FollowerAddr
 	}
-	return sm
+	return sm, nil
 }
 
-func NewFollower(s *StateMachine, addr string) *StateMachine {
+func NewFollower(s *StateMachine, addr string) {
 	s.FollowerAddr = append(s.FollowerAddr, addr)
+}
 
-	sm := NewNode(FOLLOWER, addr)
-	return sm
+func (s *StateMachine) DeleteFollower(addr string) {
+	for i, a := range s.FollowerAddr {
+		if a == addr {
+			s.FollowerAddr = append(s.FollowerAddr[:i], s.FollowerAddr[i+1:]...)
+			break
+		}
+	}
 }
