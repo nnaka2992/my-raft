@@ -45,17 +45,23 @@ func main() {
 
 	//	e.POST("/raft/heartbeat", PostReceiveHeartbeat)
 	e.GET("/raft/health", GetHealth)
+	e.GET("/raft/statemachine", GetStateMachine)
 	e.POST("/raft/follower/new", PostNewFollower)
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", *sPort)))
 }
 
 func GetHealth(c echo.Context) error {
-	s := struct { Status string }{ Status: "OK" }
+	r := struct { Status string }{ Status: "OK" }
+	return c.JSON(http.StatusOK, r)
+}
+
+func GetStateMachine(c echo.Context) error {
 	return c.JSON(http.StatusOK, s)
 }
 
 func PostNewFollower(c echo.Context) error {
 	addr := c.QueryParam("client_addr")
-	s := NewFollower(s, addr)
-	return c.JSON(http.StatusOK, s)
+	s.FollowerAddr = append(s.FollowerAddr, addr)
+	r := struct { Status string }{ Status: "OK" }
+	return c.JSON(http.StatusOK, r)
 }
