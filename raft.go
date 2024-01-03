@@ -93,7 +93,7 @@ func NewNode(st state, addr string) *StateMachine {
 	return sm
 }
 
-func (s *StateMachine) NewFollower(addr string) *StateMachine {
+func NewFollower(s *StateMachine, addr string) *StateMachine {
 	s.FollowerAddr = append(s.FollowerAddr, addr)
 
 	sm := NewNode(FOLLOWER, addr)

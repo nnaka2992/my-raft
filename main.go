@@ -56,6 +56,6 @@ func GetHealth(c echo.Context) error {
 
 func PostNewFollower(c echo.Context) error {
 	addr := c.QueryParam("client_addr")
-	s := s.NewFollower(addr)
+	s := NewFollower(s, addr)
 	return c.JSON(http.StatusOK, s)
 }
